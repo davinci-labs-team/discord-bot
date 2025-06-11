@@ -1,0 +1,32 @@
+{
+    "name": "discord-bot",
+    "version": "1.0.0",
+    "description": "The discord bot that auto create channels for the davinci hackathon platform",
+    "main": "src/index.ts",
+    "type": "module",
+    "scripts": {
+        "dev": "ts-node src/index.ts",
+        "build": "tsc",
+        "lint": "eslint \"src/**/*.ts\"",
+        "lint:fix": "eslint \"src/**/*.ts\" --fix",
+        "start": "node dist/index.js"
+    },
+    "author": "Hadrien Casadesus",
+    "license": "ISC",
+    "dependencies": {
+        "discord.js": "^14.19.3",
+        "dotenv": "^16.5.0",
+        "mysql2": "^3.14.1"
+    },
+    "devDependencies": {
+        "@adonisjs/eslint-config": "^1.3.1",
+        "@types/node": "^20.17.57",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-prettier": "^5.4.1",
+        "prettier": "^3.5.3",
+        "ts-node": "^10.9.2",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.8.3"
+    }
+}
