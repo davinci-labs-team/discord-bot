@@ -9,12 +9,11 @@ import {
     Routes,
     SlashCommandBuilder
 } from "discord.js";
-import HackatonBotConfig from "./config/config.js";
-import path from "node:path";
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
-import { InternalHackatonBotError } from "./errors/internal_errors.js";
-import { DefaultHackatonBotMessages } from "./lang/default_messages.js";
+import path from "node:path";
+import HackatonBotConfig from "./config/config";
+import { InternalHackatonBotError } from "./errors/internal_errors";
+import { DefaultHackatonBotMessages } from "./lang/default_messages";
 
 export const hackatonClient = new Client({
     intents: [
@@ -38,22 +37,21 @@ export interface UserCommand {
     data: SlashCommandBuilder;
 }
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-
 const config = HackatonBotConfig.GetConfig();
 const commands = []; ///commands array
 const clientCommands = new Collection<string, CommandFile>();
 
 //getting all commands in the command folder
-const commandsPath = path.join(dirname, "commands");
+// eslint-disable-next-line unicorn/prefer-module
+const commandsPath = path.join(__dirname, "commands");
 
 const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".ts"));
 
 //for each command file, require it and add it to the commands collection
 for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
-    const commandModule = await import(filePath);
+    // eslint-disable-next-line unicorn/prefer-module
+    const commandModule = require(filePath);
     const command = commandModule.default || commandModule;
     // Set a new item in the Collection with the key as the command name and the value as the exported module
     if ("data" in command && "execute" in command) {
@@ -64,6 +62,7 @@ for (const file of commandFiles) {
         );
     }
     //set the command in the array to be able to register it
+
     commands.push(command.data.toJSON());
 }
 
@@ -95,11 +94,15 @@ const rest = new REST().setToken(config.BOT_TOKEN);
 (async () => {
     try {
         console.log("Started refreshing application (/) commands.");
+        console.log(config.DEV_SERVER_ID);
+
         if (config.ENV === "development") {
-            await rest.put(Routes.applicationGuildCommands("0000", "0000"), { body: commands });
+            await rest.put(Routes.applicationGuildCommands(config.APP_ID, config.DEV_SERVER_ID), {
+                body: commands
+            });
         } else {
             //! Production Mode
-            await rest.put(Routes.applicationCommands("0000"), { body: commands });
+            await rest.put(Routes.applicationCommands(config.APP_ID), { body: commands });
         }
 
         console.log("Successfully reloaded application (/) commands.");

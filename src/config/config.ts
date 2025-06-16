@@ -13,6 +13,8 @@ interface Config {
     HACKATON_API_KEY: string;
     BOT_API_ENDPOINT: string;
     BOT_TOKEN: string;
+    APP_ID: string;
+    DEV_SERVER_ID: string;
 }
 
 export default class HackatonBotConfig {
@@ -29,7 +31,9 @@ export default class HackatonBotConfig {
             ENV: process.env.ENV as Env,
             BOT_API_ENDPOINT: process.env.BOT_API_ENDPOINT as string,
             BOT_TOKEN: process.env.BOT_TOKEN as string,
-            HACKATON_API_KEY: process.env.DAVINCI_HACKATON_API_KEY as string
+            HACKATON_API_KEY: process.env.HACKATON_API_KEY as string,
+            APP_ID: process.env.APP_ID as string,
+            DEV_SERVER_ID: process.env.DEV_SERVER_ID as string
         };
 
         if (Object.values(this.config).some((o) => o === undefined || o === null)) {
