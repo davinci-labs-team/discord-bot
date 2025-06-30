@@ -15,6 +15,7 @@ interface Config {
     BOT_TOKEN: string;
     APP_ID: string;
     DEV_SERVER_ID: string;
+    CLIENT_ID: string;
 }
 
 export default class HackatonBotConfig {
@@ -33,7 +34,8 @@ export default class HackatonBotConfig {
             BOT_TOKEN: process.env.BOT_TOKEN as string,
             HACKATON_API_KEY: process.env.HACKATON_API_KEY as string,
             APP_ID: process.env.APP_ID as string,
-            DEV_SERVER_ID: process.env.DEV_SERVER_ID as string
+            DEV_SERVER_ID: process.env.DEV_SERVER_ID as string,
+            CLIENT_ID: process.env.CLIENT_ID as string
         };
 
         if (Object.values(this.config).some((o) => o === undefined || o === null)) {

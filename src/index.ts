@@ -1,73 +1,71 @@
-import {
-    ChatInputCommandInteraction,
-    Client,
-    Collection,
-    Events,
-    GatewayIntentBits,
-    Interaction,
-    REST,
-    Routes,
-    SlashCommandBuilder
-} from "discord.js";
+import { Collection, Events, Interaction, REST, Routes, SlashCommandBuilder } from "discord.js";
+import "dotenv/config";
 import fs from "node:fs";
-import path from "node:path";
-import HackatonBotConfig from "./config/config";
-import { InternalHackatonBotError } from "./errors/internal_errors";
-import { DefaultHackatonBotMessages } from "./lang/default_messages";
-
-export const hackatonClient = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMembers
-    ]
-});
+import path, { dirname } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import ShopBotConfig from "./config/config.js";
+import { InternalHackatonBotError } from "./errors/internal_errors.js";
+import { DefaultHackatonBotMessages } from "./lang/default_messages.js";
+import { shopbotClient } from "./utils/client.js";
 
 interface CommandFile {
     execute: (interaction: Interaction) => void;
     data: SlashCommandBuilder;
 }
 
-export interface UserCommand {
-    execute: (
-        interaction: ChatInputCommandInteraction & {
-            options: import("discord.js").CommandInteractionOptionResolver;
-        }
-    ) => Promise<any>;
-    data: SlashCommandBuilder;
-}
-
-const config = HackatonBotConfig.GetConfig();
+const config = ShopBotConfig.GetConfig();
 const commands = []; ///commands array
 const clientCommands = new Collection<string, CommandFile>();
 
 //getting all commands in the command folder
-// eslint-disable-next-line unicorn/prefer-module
-const commandsPath = path.join(__dirname, "commands");
 
-const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".ts"));
+const filename = fileURLToPath(import.meta.url);
+const dirNamevalue = dirname(filename);
+
+const commandsPath = path.join(dirNamevalue, "commands");
+
+let commandFiles: string[] = [];
+if (config.ENV === "development") {
+    commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".ts"));
+} else {
+    commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".js"));
+}
 
 //for each command file, require it and add it to the commands collection
-for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    // eslint-disable-next-line unicorn/prefer-module
-    const commandModule = require(filePath);
-    const command = commandModule.default || commandModule;
-    // Set a new item in the Collection with the key as the command name and the value as the exported module
-    if ("data" in command && "execute" in command) {
-        clientCommands.set(command.data.name, command);
-    } else {
-        console.log(
-            `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
-        );
-    }
-    //set the command in the array to be able to register it
 
-    commands.push(command.data.toJSON());
+for (const file of commandFiles) {
+    try {
+        //console.log(`Loading command ${i + 1}/${commandFiles.length}: ${file}`);
+        const filePath = path.join(commandsPath, file!);
+        const fileUrl = pathToFileURL(filePath).href;
+
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Import timeout")), 5000); // 5 second timeout
+        });
+
+        const commandModule = await Promise.race([await import(fileUrl), timeoutPromise]);
+
+        const command = commandModule.default || commandModule;
+        // Set a new item in the Collection with the key as the command name and the value as the exported module
+        if ("data" in command && "execute" in command) {
+            clientCommands.set(command.data.name, command);
+            commands.push(command.data.toJSON());
+            //console.log(`✓ Successfully loaded: ${command.data.name}`);
+        } else {
+            console.warn(
+                `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
+            );
+        }
+    } catch (error) {
+        console.error(`✗ Failed to load command ${file}:`, error);
+        // Continue with the next command instead of stopping
+        continue;
+    }
 }
 
 //execute the interrecation
-hackatonClient.on(Events.InteractionCreate, async (interaction) => {
+shopbotClient.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isCommand()) return;
     const command = clientCommands.get(interaction.commandName);
 
@@ -94,15 +92,14 @@ const rest = new REST().setToken(config.BOT_TOKEN);
 (async () => {
     try {
         console.log("Started refreshing application (/) commands.");
-        console.log(config.DEV_SERVER_ID);
-
         if (config.ENV === "development") {
-            await rest.put(Routes.applicationGuildCommands(config.APP_ID, config.DEV_SERVER_ID), {
-                body: commands
-            });
+            await rest.put(
+                Routes.applicationGuildCommands(config.CLIENT_ID, "834041246909071370"),
+                { body: commands }
+            );
         } else {
             //! Production Mode
-            await rest.put(Routes.applicationCommands(config.APP_ID), { body: commands });
+            await rest.put(Routes.applicationCommands(config.CLIENT_ID), { body: commands });
         }
 
         console.log("Successfully reloaded application (/) commands.");
@@ -111,9 +108,17 @@ const rest = new REST().setToken(config.BOT_TOKEN);
     }
 })();
 
-hackatonClient.once("ready", () => {
+new Promise(async (res, _) => {
+    console.log("Testing services....");
+
+    console.log("Finished testing services");
+    res(null);
+});
+
+shopbotClient.once("ready", () => {
+    //client.user.setPresence({ activities: [{ name: 'Completing checkouts ....' }], status: 'online' }); //setting the bot activity
     console.log("Ready!");
 });
 
 //token
-hackatonClient.login(config.BOT_TOKEN);
+shopbotClient.login(config.BOT_TOKEN);

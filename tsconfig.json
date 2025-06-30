@@ -1,9 +1,10 @@
+// tsconfig.json
 {
     "compilerOptions": {
         "target": "ES2022",
         "lib": ["ES2022"],
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "node16",
+        "moduleResolution": "node16",
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "strict": true,
@@ -16,10 +17,10 @@
         "removeComments": true,
         "noEmitOnError": true,
         "sourceMap": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "strictPropertyInitialization": false,
-        "importHelpers": true,
+        "experimentalDecorators": true, // Keep if you are using decorators
+        "emitDecoratorMetadata": true, // Keep if you are using decorators
+        "strictPropertyInitialization": false, // Keep if necessary for your class designs
+        "importHelpers": true, // Requires 'tslib' package, good for reducing bundle size
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "exactOptionalPropertyTypes": true,
@@ -31,9 +32,30 @@
         "allowUnreachableCode": false,
         "pretty": true,
         "newLine": "lf"
+
+        // --- Optional Additions/Confirmations ---
+
+        // Ensure allowJs is true if you might have any .js files in your src that you import
+        // If your entire codebase is TypeScript, you might not strictly need this.
+        // "allowJs": true,
+
+        // If you plan on using path aliases (e.g., @utils/something)
+        // You'd need to add these, but your current relative imports don't use them.
+        // "baseUrl": "./src",
+        // "paths": {
+        //   "@/*": ["./*"]
+        // }
     },
-    "include": ["src/**/*", "tests/**/*"],
-    "exclude": ["node_modules", "dist", "coverage"],
+    "include": [
+        "src/**/*" // Generally, don't include 'tests' in the main build scope unless they are part of the distributed code
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage",
+        "tests" // Exclude tests from the main build output
+    ],
+    // ts-node configuration is for development/testing with ts-node, not for the final build
     "ts-node": {
         "files": true,
         "experimentalSpecifierResolution": "node"
