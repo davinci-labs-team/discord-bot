@@ -94,7 +94,7 @@ const rest = new REST().setToken(config.BOT_TOKEN);
         console.log("Started refreshing application (/) commands.");
         if (config.ENV === "development") {
             await rest.put(
-                Routes.applicationGuildCommands(config.CLIENT_ID, "834041246909071370"),
+                Routes.applicationGuildCommands(config.CLIENT_ID, config.DEV_SERVER_ID),
                 { body: commands }
             );
         } else {
