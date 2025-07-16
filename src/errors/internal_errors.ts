@@ -6,3 +6,12 @@ export class InternalHackatonBotError extends Error {
         Object.setPrototypeOf(this, InternalHackatonBotError.prototype);
     }
 }
+
+export class NoRoleFoundError extends InternalHackatonBotError {
+    constructor() {
+        super(
+            "No roles found in the database.",
+            "No roles found in the database. Please add roles first."
+        );
+    }
+}
