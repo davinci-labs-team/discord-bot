@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
-export const shopbotClient = new Client({
+export const HackatonBotClient = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -8,4 +8,4 @@ export const shopbotClient = new Client({
     ]
 });
 
-export type ShopBotClient = typeof shopbotClient;
+export type HackatonBotClient = typeof HackatonBotClient;

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import ShopBotConfig from "./config/config.js";
 import { InternalHackatonBotError } from "./errors/internal_errors.js";
 import { DefaultHackatonBotMessages } from "./lang/default_messages.js";
-import { shopbotClient } from "./utils/client.js";
+import { HackatonBotClient } from "./utils/client.js";
 
 interface CommandFile {
     execute: (interaction: Interaction) => void;
@@ -65,7 +65,7 @@ for (const file of commandFiles) {
 }
 
 //execute the interrecation
-shopbotClient.on(Events.InteractionCreate, async (interaction) => {
+HackatonBotClient.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isCommand()) return;
     const command = clientCommands.get(interaction.commandName);
 
@@ -115,10 +115,10 @@ new Promise(async (res, _) => {
     res(null);
 });
 
-shopbotClient.once("ready", () => {
+HackatonBotClient.once("ready", () => {
     //client.user.setPresence({ activities: [{ name: 'Completing checkouts ....' }], status: 'online' }); //setting the bot activity
     console.log("Ready!");
 });
 
 //token
-shopbotClient.login(config.BOT_TOKEN);
+HackatonBotClient.login(config.BOT_TOKEN);

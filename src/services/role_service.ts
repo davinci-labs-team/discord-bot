@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, Guild, PermissionFlagsBits, Role } from "discord.js";
 import { supabase } from "../utils/supabase.js";
 import { NoRoleFoundError } from "../errors/internal_errors.js";
 
@@ -26,16 +26,60 @@ export default abstract class RoleService {
         const color = `#${randomColor}`;
         for (const role of roles.data) {
             try {
-                await guild.roles.create({
+                const createdRole = await guild.roles.create({
                     name: role.name,
                     reason: "Role created by Hackaton Bot",
                     color: color as `#${string}`, // Ensure color is a valid hex code
                     mentionable: true
                 });
+                //now we give permissions to the role
+                await this.GiveRolePermissions(role.name, createdRole);
             } catch (error) {
                 console.error(`Failed to create role ${role.name}:`, error);
                 throw new Error(`Failed to create role ${role.name}.`);
             }
+        }
+    }
+    private static async GiveRolePermissions(role_name: string, role: Role) {
+        let defaultDenyPermission: bigint[] = [];
+        let defaultPermissions: bigint[] = [];
+        switch (String(role_name)) {
+            case "everyone":
+                defaultDenyPermission = [
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.ViewChannel
+                ];
+                break;
+            case "USER":
+                defaultDenyPermission = [
+                    PermissionFlagsBits.CreateEvents,
+                    PermissionFlagsBits.MentionEveryone
+                ];
+                defaultPermissions = [
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.ViewChannel
+                ];
+                break;
+            case "JURY":
+                defaultPermissions = [PermissionFlagsBits.Administrator];
+                break;
+            case "MENTOR":
+                defaultPermissions = [PermissionFlagsBits.Administrator];
+                break;
+            case "ORGANIZER":
+                defaultPermissions = [PermissionFlagsBits.Administrator];
+                break;
+
+            default:
+                break;
+        }
+
+        //add the permissions to the role
+        for (let i = 0; i < defaultDenyPermission.length; i++) {
+            role.permissions.remove(defaultDenyPermission[i]!);
+        }
+        for (let i = 0; i < defaultPermissions.length; i++) {
+            role.permissions.add(defaultPermissions[i]!);
         }
     }
 }
