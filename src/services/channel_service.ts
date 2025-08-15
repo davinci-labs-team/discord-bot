@@ -1,6 +1,7 @@
-import { ChannelType, Guild, PermissionFlagsBits } from "discord.js";
+import { CategoryChannel, ChannelType, Guild, PermissionFlagsBits, TextChannel } from "discord.js";
 import { InternalHackatonBotError } from "../errors/internal_errors.js";
 import { HackatonBotClient } from "../utils/client.js";
+import TicketService from "./ticket_service.js";
 
 export default abstract class ChannelService {
     private static async GenerateCategory(
@@ -38,7 +39,45 @@ export default abstract class ChannelService {
             );
         }
     }
-    private static async GenerateChannel(guild: Guild) {}
+    private static async GenerateChannel(
+        guild: Guild,
+        category: CategoryChannel,
+        name: string,
+        allowPermissions: bigint[],
+        denyPermissions: bigint[]
+    ): Promise<TextChannel> {
+        const everyoneRole = guild.roles.cache.find((role) => role.name === "@everyone");
+
+        const channelOptions: any = {
+            name: name,
+            type: ChannelType.GuildText,
+            parent: category.id,
+            permissionOverwrites: [
+                {
+                    id: everyoneRole?.id,
+                    allow: allowPermissions,
+                    deny: denyPermissions
+                },
+                {
+                    id: HackatonBotClient.user?.id,
+                    allow: [
+                        PermissionFlagsBits.SendMessages,
+                        PermissionFlagsBits.CreatePublicThreads,
+                        PermissionFlagsBits.CreatePrivateThreads,
+                        PermissionFlagsBits.SendTTSMessages,
+                        PermissionFlagsBits.ManageChannels,
+                        PermissionFlagsBits.AttachFiles,
+                        PermissionFlagsBits.ManageMessages,
+                        PermissionFlagsBits.ManageThreads,
+                        PermissionFlagsBits.EmbedLinks,
+                        PermissionFlagsBits.SendMessagesInThreads,
+                        PermissionFlagsBits.ViewChannel
+                    ]
+                }
+            ]
+        };
+        return (await guild.channels.create(channelOptions)) as TextChannel;
+    }
     static async GenerateGuildChannels(guild: Guild) {
         //first we generate the needed categories
         const defaultDenyPermissions = [
@@ -48,12 +87,21 @@ export default abstract class ChannelService {
             PermissionFlagsBits.CreatePublicThreads
         ];
         //information
-        const informationCatory = await this.GenerateCategory(
+        const informationCateory = await this.GenerateCategory(
             guild,
             [],
             defaultDenyPermissions,
             "information"
         );
+        await this.GenerateChannel(
+            guild,
+            informationCateory,
+            "annoucements",
+            [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.AddReactions],
+
+            [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles]
+        );
+
         //support
         const supportCategory = await this.GenerateCategory(
             guild,
@@ -61,11 +109,71 @@ export default abstract class ChannelService {
             defaultDenyPermissions,
             "support"
         );
+        await this.GenerateChannel(
+            guild,
+            supportCategory,
+            "general-help",
+            [
+                PermissionFlagsBits.ViewChannel,
+                PermissionFlagsBits.AddReactions,
+                PermissionFlagsBits.CreatePrivateThreads,
+                PermissionFlagsBits.CreatePublicThreads,
+                PermissionFlagsBits.SendMessages
+            ],
+            []
+        );
+
         const ticketsCategory = await this.GenerateCategory(
             guild,
-            [],
+            [
+                PermissionFlagsBits.SendMessages,
+                PermissionFlagsBits.AttachFiles,
+                PermissionFlagsBits.CreatePublicThreads,
+                PermissionFlagsBits.CreatePrivateThreads
+            ],
             defaultDenyPermissions,
             "tickets"
+        );
+
+        const ticketChan = await this.GenerateChannel(
+            guild,
+            ticketsCategory,
+            "open-ticket",
+
+            [PermissionFlagsBits.ViewChannel],
+            [
+                PermissionFlagsBits.SendMessages,
+                PermissionFlagsBits.AttachFiles,
+                PermissionFlagsBits.CreatePrivateThreads,
+                PermissionFlagsBits.CreatePublicThreads
+            ]
+        );
+        await TicketService.GenerateTicketChannelMessage(ticketChan);
+
+        const staffCategory = await this.GenerateCategory(
+            guild,
+            [
+                PermissionFlagsBits.SendMessages,
+                PermissionFlagsBits.AttachFiles,
+                PermissionFlagsBits.CreatePublicThreads,
+                PermissionFlagsBits.CreatePrivateThreads
+            ],
+            defaultDenyPermissions,
+            "staff"
+        );
+        await this.GenerateChannel(
+            guild,
+            staffCategory,
+            "staff-only",
+
+            [],
+            [
+                PermissionFlagsBits.ViewChannel,
+                PermissionFlagsBits.SendMessages,
+                PermissionFlagsBits.AttachFiles,
+                PermissionFlagsBits.CreatePrivateThreads,
+                PermissionFlagsBits.CreatePublicThreads
+            ]
         );
         const generalCateory = await this.GenerateCategory(
             guild,
@@ -79,9 +187,14 @@ export default abstract class ChannelService {
             [PermissionFlagsBits.MentionEveryone],
             "general"
         );
-
-        //now we generate the channels inside the categories
-
-        //annoncement
+        //move general channel over to here
+        const generalChannel = guild.channels.cache.find(
+            (channel) => channel.name === "general" && channel.type === ChannelType.GuildText
+        );
+        if (generalChannel) {
+            await generalChannel.edit({
+                parent: generalCateory.id
+            });
+        }
     }
 }
