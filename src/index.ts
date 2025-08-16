@@ -115,6 +115,8 @@ new Promise(async (res, _) => {
     res(null);
 });
 
+await import("./utils/event_router.js");
+
 HackatonBotClient.once("ready", () => {
     //client.user.setPresence({ activities: [{ name: 'Completing checkouts ....' }], status: 'online' }); //setting the bot activity
     console.log("Ready!");
