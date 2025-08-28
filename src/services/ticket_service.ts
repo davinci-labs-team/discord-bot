@@ -86,20 +86,23 @@ export default abstract class TicketService {
 
         //get last ticket id
         const lastTicket = await supabase
-            .from("communication_platform_tickets")
+            .from("tickets")
             .select("id")
             .eq("emitter_platform_id", "discord")
             .order("id", { ascending: false })
-            .limit(1)
-            .single();
-        if (lastTicket.error) {
+            .limit(1);
+        if (lastTicket.error || !lastTicket.data) {
             throw new Error(`Failed to fetch last ticket: ${lastTicket.error.message}`);
         }
-        const ticketId = lastTicket.data ? lastTicket.data.id + 1 : 1; // Increment the last ticket ID or start at 1 if none exists
+        let ticketId = 0;
+        if (lastTicket.data.length) {
+            ticketId = lastTicket.data[0]!.id + 1;
+        }
+
         channelOptions.name += ticketId.toString(36).padStart(4, "0"); // Convert to base 36 and pad to 4 characters
         const ticketChannel = (await guild.channels.create(channelOptions)) as TextChannel;
         //insert the ticket into the database
-        await supabase.from("communication_platform_tickets").insert({
+        await supabase.from("tickets").insert({
             id: ticketId,
             status: "OPEN",
             emitter_platform_id: "discord",

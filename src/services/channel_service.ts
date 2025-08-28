@@ -96,7 +96,7 @@ export default abstract class ChannelService {
         await this.GenerateChannel(
             guild,
             informationCateory,
-            "annoucements",
+            "announcements",
             [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.AddReactions],
 
             [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles]
