@@ -28,7 +28,7 @@ export default abstract class RoleService {
             }
         }
         const everyoneRole = guild.roles.cache.find((role) => role.name === "@everyone");
-        await this.GiveRolePermissions("everyone", everyoneRole!);
+        await this.GiveRolePermissions(Roles.Everyone, everyoneRole!);
     }
     private static async GiveRolePermissions(role_name: string, role: Role) {
         let defaultDenyPermission: bigint[] = [];
@@ -65,11 +65,8 @@ export default abstract class RoleService {
         }
 
         //add the permissions to the role
-        for (let i = 0; i < defaultDenyPermission.length; i++) {
-            role.permissions.remove(defaultDenyPermission[i]!);
-        }
-        for (let i = 0; i < defaultPermissions.length; i++) {
-            role.permissions.add(defaultPermissions[i]!);
-        }
+        await role.setPermissions(role.permissions.remove(defaultDenyPermission!));
+
+        await role.setPermissions(role.permissions.add(defaultPermissions!));
     }
 }

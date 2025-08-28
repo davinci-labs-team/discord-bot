@@ -12,7 +12,7 @@ interface Config {
     BOT_TOKEN: string;
     DEV_SERVER_ID: string;
     CLIENT_ID: string;
-    GUILD_ID?: string;
+    GUILD_ID: string;
 }
 
 export default class HackatonBotConfig {

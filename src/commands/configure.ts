@@ -31,7 +31,7 @@ const configureCommand: UserCommand = {
 
             await RoleService.GenerateRoles(interaction);
             //now we generate the channels
-            await ChannelService.GenerateGuildChannels(interaction.guild);
+            //await ChannelService.GenerateGuildChannels(interaction.guild);
         } catch (error) {
             if (error instanceof InternalHackatonBotError) {
                 console.error("Error generating roles:", error);
@@ -43,7 +43,7 @@ const configureCommand: UserCommand = {
             return;
         }
 
-        await interaction.editReply({ content: "In dev !" });
+        await interaction.editReply({ content: "Done !" });
     }
 };
 
