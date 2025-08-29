@@ -7,6 +7,7 @@ import ShopBotConfig from "./config/config.js";
 import { InternalHackatonBotError } from "./errors/internal_errors.js";
 import { DefaultHackatonBotMessages } from "./lang/default_messages.js";
 import { HackatonBotClient } from "./utils/client.js";
+import ListenToAnnounces from "./events/announces_listner.js";
 
 interface CommandFile {
     execute: (interaction: Interaction) => void;
@@ -108,14 +109,10 @@ const rest = new REST().setToken(config.BOT_TOKEN);
     }
 })();
 
-new Promise(async (res, _) => {
-    console.log("Testing services....");
-
-    console.log("Finished testing services");
-    res(null);
-});
-
 await import("./utils/event_router.js");
+await import("./events/announces_listner.js");
+
+ListenToAnnounces();
 
 HackatonBotClient.once("ready", () => {
     //client.user.setPresence({ activities: [{ name: 'Completing checkouts ....' }], status: 'online' }); //setting the bot activity

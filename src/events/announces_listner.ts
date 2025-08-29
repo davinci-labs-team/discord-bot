@@ -13,7 +13,7 @@ export default async function ListenToAnnounces() {
                 const announce = payload.new;
                 const channel = HackatonBotClient.guilds.cache
                     .get(HackatonBotConfig.GetConfig().GUILD_ID!)
-                    ?.channels.cache.find((channel) => channel.name === "announces");
+                    ?.channels.cache.find((channel) => channel.name === "announcements");
                 if (channel instanceof TextChannel) {
                     await channel.send({
                         content: `**New Announcement:**\n${announce.content}`
