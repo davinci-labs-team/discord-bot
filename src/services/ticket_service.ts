@@ -86,7 +86,7 @@ export default abstract class TicketService {
 
         //get last ticket id
         const lastTicket = await supabase
-            .from("tickets")
+            .from("Ticket")
             .select("id")
             .eq("emitter_platform_id", "discord")
             .order("id", { ascending: false })
@@ -102,7 +102,7 @@ export default abstract class TicketService {
         channelOptions.name += ticketId.toString(36).padStart(4, "0"); // Convert to base 36 and pad to 4 characters
         const ticketChannel = (await guild.channels.create(channelOptions)) as TextChannel;
         //insert the ticket into the database
-        await supabase.from("tickets").insert({
+        await supabase.from("Ticket").insert({
             id: ticketId,
             status: "OPEN",
             emitter_platform_id: "discord",

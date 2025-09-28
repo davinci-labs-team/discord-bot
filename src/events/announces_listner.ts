@@ -5,10 +5,10 @@ import { supabase } from "../utils/supabase.js";
 
 export default async function ListenToAnnounces() {
     supabase
-        .channel("announces")
+        .channel("Announcement")
         .on(
             "postgres_changes",
-            { event: "INSERT", schema: "public", table: "announces" },
+            { event: "INSERT", schema: "public", table: "Announcement" },
             async (payload) => {
                 const announce = payload.new;
                 const channel = HackatonBotClient.guilds.cache
