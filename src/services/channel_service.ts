@@ -196,5 +196,18 @@ export default abstract class ChannelService {
                 parent: generalCateory.id
             });
         }
+
+        await this.GenerateCategory(
+            guild,
+            [
+                PermissionFlagsBits.SendMessages,
+                PermissionFlagsBits.CreatePublicThreads,
+                PermissionFlagsBits.SendPolls,
+                PermissionFlagsBits.AttachFiles,
+                PermissionFlagsBits.UseApplicationCommands
+            ],
+            [PermissionFlagsBits.MentionEveryone],
+            "teams"
+        );
     }
 }
