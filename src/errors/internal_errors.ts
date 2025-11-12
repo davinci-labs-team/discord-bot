@@ -15,3 +15,12 @@ export class NoRoleFoundError extends InternalHackatonBotError {
         );
     }
 }
+
+export class TeamChannelNotFound extends InternalHackatonBotError {
+    constructor() {
+        super(
+            "Could not find 'teams' category",
+            "The 'teams' category is missing. Run GenerateGuildChannels or create it manually."
+        );
+    }
+}

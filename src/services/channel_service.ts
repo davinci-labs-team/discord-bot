@@ -1,5 +1,12 @@
-import { CategoryChannel, ChannelType, Guild, PermissionFlagsBits, TextChannel } from "discord.js";
-import { InternalHackatonBotError } from "../errors/internal_errors.js";
+import {
+    CategoryChannel,
+    ChannelType,
+    Guild,
+    PermissionFlagsBits,
+    Role,
+    TextChannel
+} from "discord.js";
+import { InternalHackatonBotError, TeamChannelNotFound } from "../errors/internal_errors.js";
 import { HackatonBotClient } from "../utils/client.js";
 import TicketService from "./ticket_service.js";
 
@@ -209,5 +216,49 @@ export default abstract class ChannelService {
             [PermissionFlagsBits.MentionEveryone],
             "teams"
         );
+    }
+
+    public static async GenerateTeamsChannel(guild: Guild, teamRoles: Role[]) {
+        //get the teams category
+        const teamsCategory = guild.channels.cache.find(
+            (c) => c.type === ChannelType.GuildCategory && c.name.toLowerCase() === "teams"
+        ) as CategoryChannel | undefined;
+
+        if (!teamsCategory) {
+            console.error("Could not found the Teams Category");
+            throw new TeamChannelNotFound();
+        }
+        for (const role of teamRoles) {
+            try {
+                const createdChannel = await this.GenerateChannel(
+                    guild,
+                    teamsCategory,
+                    role.name,
+                    [],
+                    [
+                        PermissionFlagsBits.ViewChannel,
+                        PermissionFlagsBits.SendMessages,
+                        PermissionFlagsBits.AttachFiles,
+                        PermissionFlagsBits.CreatePrivateThreads,
+                        PermissionFlagsBits.CreatePublicThreads
+                    ]
+                );
+                await createdChannel.permissionOverwrites.create(role.id, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    AttachFiles: true,
+                    CreatePrivateThreads: true,
+                    CreatePublicThreads: true,
+                    SendMessagesInThreads: true,
+                    ReadMessageHistory: true
+                });
+            } catch (error) {
+                console.error(
+                    "Could not generate the team channel and/or add role to it: \n" + error
+                );
+
+                throw new Error("Could not generate the team channel and/or add role to it");
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
-import { CommandInteraction, PermissionFlagsBits, Role } from "discord.js";
+import { CommandInteraction, Guild, PermissionFlagsBits, Role } from "discord.js";
 import { Roles } from "../utils/constants.js";
+import { supabase } from "../utils/supabase.js";
 
 export default abstract class RoleService {
     static async GenerateRoles(interaction: CommandInteraction): Promise<void> {
@@ -68,5 +69,50 @@ export default abstract class RoleService {
         await role.setPermissions(role.permissions.remove(defaultDenyPermission!));
 
         await role.setPermissions(role.permissions.add(defaultPermissions!));
+    }
+    private static async AttributTeamRole(guild: Guild, role: Role, team_id: string) {
+        const teamMembers = await supabase.from("User").select("discord").eq("teamId", team_id);
+        if (teamMembers.error) {
+            throw new Error("Could not fetch teams");
+        }
+        for (let i = 0; i < teamMembers.data.length; i++) {
+            const discordId = teamMembers.data[i]?.discord;
+            if (!discordId) continue;
+            try {
+                const member = await guild.members.fetch(String(discordId)).catch(() => null);
+                if (!member) continue;
+                await member.roles
+                    .add(role)
+                    .catch((err) => console.error(`Failed to add role to ${discordId}:`, err));
+            } catch (err) {
+                console.error(`Error assigning role to ${discordId}:`, err);
+            }
+        }
+    }
+    public static async GenerateAndAttributTeamRoles(guild: Guild): Promise<Role[]> {
+        const teams = await supabase.from("Team").select("id, name");
+        if (teams.error) {
+            console.error("Failed to contact supabase GenerateTeamRoles: " + teams);
+            throw new Error("Failed to contact supabase");
+        }
+        //generate the roles
+        const generatedRoles = [];
+        try {
+            for (let i = 0; i < teams.data.length; i++) {
+                const createdRole = await guild.roles.create({
+                    name: teams.data[i]?.name,
+                    reason: "Role created by Hackaton Bot",
+                    //color: color as `#${string}`, // Ensure color is a valid hex code
+                    mentionable: true
+                });
+                //now we give permissions to the role
+                await this.AttributTeamRole(guild, createdRole, teams.data[i]?.id);
+                generatedRoles.push(createdRole);
+            }
+        } catch (error) {
+            console.error(`Failed to create team role :`, error);
+            throw new Error(`Failed to create team role.`);
+        }
+        return generatedRoles;
     }
 }
