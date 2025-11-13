@@ -7,8 +7,6 @@ interface Config {
     SUPABASE_HOST: string;
     SUPABSE_TOKEN: string;
     ENV: Env;
-    BOT_API_KEY: string;
-    BOT_API_ENDPOINT: string;
     BOT_TOKEN: string;
     DEV_SERVER_ID: string;
     CLIENT_ID: string;
@@ -24,9 +22,7 @@ export default class HackatonBotConfig {
             SUPABASE_HOST: process.env.SUPABASE_HOST as string,
             SUPABSE_TOKEN: process.env.SUPABSE_TOKEN as string,
             ENV: process.env.ENV as Env,
-            BOT_API_ENDPOINT: process.env.BOT_API_ENDPOINT as string,
             BOT_TOKEN: process.env.BOT_TOKEN as string,
-            BOT_API_KEY: process.env.BOT_API_KEY as string,
             DEV_SERVER_ID: process.env.DEV_SERVER_ID as string,
             CLIENT_ID: process.env.CLIENT_ID as string,
             GUILD_ID: process.env.GUILD_ID as string
@@ -34,12 +30,6 @@ export default class HackatonBotConfig {
 
         if (Object.values(this.config).some((o) => o === undefined || o === null)) {
             throw new Error("Some Envs are not set properly");
-        }
-        if (
-            this.config.ENV === "production" &&
-            this.config.BOT_API_ENDPOINT.includes("localhost")
-        ) {
-            throw new Error("Dev bot API endpoint detected !");
         }
     }
 
