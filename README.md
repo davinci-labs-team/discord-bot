@@ -333,6 +333,3 @@ Hadrien Casadesus
 - Ensure the "announcements" channel exists (run `/configure` first)
 - Verify `SUPABSE_TOKEN` and `SUPABASE_HOST` are correct
 
-## 📞 Support
-
-For issues and questions, use the ticket system in the Discord server or contact the development team.
