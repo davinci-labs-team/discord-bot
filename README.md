@@ -1,7 +1,338 @@
-# Hackaton Bot
+# DaVinci Labs Hackathon Discord Bot
 
-This is the bot for the davinci labs hackaton platform. It needs to be configured with roles and channels before it can be used. (See standalone configuration app for that)
+A comprehensive Discord bot designed specifically for the DaVinci Labs hackathon platform. This bot automates server setup, team management, role assignment, and communication through seamless integration with Supabase.
 
-## Currently in development !!!!!!!!!!!
 
-This bot is currently in development and is not yet ready for production use. It is being developed to support the davinci labs hackaton platform, please do not use it in production environments yet as it will sertainly break things.
+## 📋 Features
+
+- **Automated Server Setup**: Configure your Discord server with predefined roles and channels optimized for hackathons
+- **Team Management**: Automatically create team roles and private channels based on Supabase data
+- **Role Assignment**: Automatically assign team members to their respective roles
+- **Real-time Announcements**: Listen to Supabase announcements and broadcast them to the announcements channel
+- **Ticket System**: Integrated support ticket system for participants to contact staff
+
+## 🚀 Prerequisites
+
+Before you begin, ensure you have the following:
+
+- **Node.js** (v18 or higher)
+- **npm** (comes with Node.js)
+- **Discord Account** with access to [Discord Developer Portal](https://discord.com/developers/applications)
+- **Supabase Account** with a configured project
+- **Discord Server** with administrative permissions
+
+## 📦 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/davinci-labs-team/discord-bot.git
+   cd discord-bot
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Build the project**
+   ```bash
+   npm run build
+   ```
+
+## 🔧 Environment Variables Setup
+
+### Step 1: Create a Discord Bot
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click "New Application" and give it a name
+3. Navigate to the "Bot" section and click "Add Bot"
+4. Under the bot settings, click "Reset Token" to generate a new token
+5. **Copy the bot token** - you'll need this for `BOT_TOKEN`
+6. Enable the following **Privileged Gateway Intents**:
+   - Server Members Intent
+   - Message Content Intent
+7. Navigate to the "OAuth2" section and copy the **Application ID** - this is your `CLIENT_ID`
+
+### Step 2: Invite the Bot to Your Server
+
+1. In the Discord Developer Portal, go to "OAuth2" > "URL Generator"
+2. Select the following scopes:
+   - `bot`
+   - `applications.commands`
+3. Select the following bot permissions:
+   - Administrator (or configure specific permissions as needed)
+4. Copy the generated URL and open it in your browser
+5. Select your server and authorize the bot
+
+### Step 3: Get Discord Server IDs
+
+1. Enable Developer Mode in Discord:
+   - User Settings > App Settings > Advanced > Developer Mode
+2. Right-click on your server name and select "Copy Server ID" - this is your `GUILD_ID`
+3. If you have a separate development server, copy its ID for `DEV_SERVER_ID`
+
+### Step 4: Setup Supabase
+
+1. Log in to [Supabase](https://supabase.com)
+2. Create or select your project
+3. Go to "Project Settings" > "API"
+4. Copy the following:
+   - **Project URL** - this is your `SUPABASE_HOST`
+   - **anon/public key** - this is your `SUPABSE_TOKEN`
+
+### Step 5: Configure Environment Variables
+
+1. **Copy the example environment file**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit the `.env` file** with your values:
+   ```env
+   # Discord Bot Configuration
+   BOT_TOKEN=your_discord_bot_token_here
+   CLIENT_ID=your_discord_application_client_id_here
+   GUILD_ID=your_discord_server_guild_id_here
+
+   # Development Environment
+   ENV=development
+   DEV_SERVER_ID=your_development_server_id_here
+
+   # Supabase Configuration
+   SUPABASE_HOST=https://your-project.supabase.co
+   SUPABSE_TOKEN=your_supabase_anon_key_here
+   ```
+
+### Required Environment Variables
+
+| Variable | Description | How to Get It |
+|----------|-------------|---------------|
+| `BOT_TOKEN` | Discord bot authentication token | Discord Developer Portal > Bot section |
+| `CLIENT_ID` | Discord application client ID | Discord Developer Portal > OAuth2 section (Application ID) |
+| `GUILD_ID` | Your Discord server ID | Right-click server name > Copy Server ID (Developer Mode required) |
+| `ENV` | Environment mode (`development` or `production`) | Set to `development` for testing, `production` for live |
+| `DEV_SERVER_ID` | Development server ID (only needed in development) | Right-click dev server name > Copy Server ID |
+| `SUPABASE_HOST` | Supabase project URL | Supabase Dashboard > Project Settings > API > Project URL |
+| `SUPABSE_TOKEN` | Supabase anonymous key | Supabase Dashboard > Project Settings > API > anon/public key |
+
+## 🎮 Usage
+
+### Running the Bot
+
+**Development Mode:**
+```bash
+npm run dev
+```
+
+**Production Mode:**
+```bash
+npm start
+```
+
+### Available Commands
+
+The bot provides two slash commands that must be run by server administrators:
+
+#### 1. `/configure`
+
+**Purpose:** Initialize your Discord server with all necessary roles and channels for a hackathon.
+
+**Requirements:**
+- Must be run by a server administrator
+- Can only be used in a server (not in DMs)
+
+**What it does:**
+- Creates four roles with appropriate permissions:
+  - **ORGANIZER** - Administrator permissions
+  - **JURY** - Administrator permissions
+  - **MENTOR** - Administrator permissions
+  - **USER** - Standard participant permissions
+- Creates channel categories and channels:
+  - **Information** category:
+    - `announcements` - Read-only channel for announcements
+  - **Support** category:
+    - `general-help` - Public help channel
+  - **Tickets** category:
+    - `open-ticket` - Ticket creation channel
+  - **Staff** category:
+    - `staff-only` - Private staff communication channel
+  - **General** category:
+    - Moves existing general channel here
+  - **Teams** category:
+    - Placeholder for team channels (created by `/team_autorole`)
+
+**Usage:**
+```
+/configure
+```
+
+**Response:**
+The bot will reply with "Done !" once all roles and channels are created.
+
+---
+
+#### 2. `/team_autorole`
+
+**Purpose:** Automatically create team roles and channels, then assign members to their teams based on Supabase data.
+
+**Requirements:**
+- Must be run by a server administrator
+- Can only be used in a server (not in DMs)
+- `/configure` must be run first to create the teams category
+- Supabase must be configured with team and user data
+
+**What it does:**
+- Fetches all teams from Supabase `Team` table
+- Creates a Discord role for each team
+- Creates a private channel for each team in the "teams" category
+- Assigns team members to their respective roles based on Supabase `User` table data
+- Configures channel permissions so only team members can access their team's channel
+
+**Usage:**
+```
+/team_autorole
+```
+
+**Response:**
+The bot will reply with "Team roles and Channels generated !" once all operations complete.
+
+**Note:** Team members must already be in the Discord server for role assignment to work. The bot matches users based on their Discord IDs stored in the Supabase database.
+
+## 🏗️ Architecture
+
+### Database Schema Requirements
+
+The bot expects the following tables in Supabase:
+
+**Team Table:**
+```sql
+- id: string (primary key)
+- name: string
+```
+
+**User Table:**
+```sql
+- discord: string (Discord user ID)
+- teamId: string (foreign key to Team.id)
+```
+
+**Announcement Table:**
+```sql
+- content: string
+- (other fields as needed)
+```
+
+**Ticket Table:**
+```sql
+- id: integer (primary key)
+- status: string
+- emitter_platform_id: string
+- channel_id: string
+- user_discord_id: string
+```
+
+### Project Structure
+
+```
+discord-bot/
+├── src/
+│   ├── commands/          # Slash command implementations
+│   │   ├── configure.ts   # /configure command
+│   │   └── team_autorole.ts # /team_autorole command
+│   ├── config/            # Configuration management
+│   │   └── config.ts      # Environment variables config
+│   ├── errors/            # Custom error classes
+│   │   └── internal_errors.ts
+│   ├── events/            # Event listeners
+│   │   └── announces_listner.ts # Supabase announcements
+│   ├── lang/              # Localization/messages
+│   │   └── default_messages.ts
+│   ├── services/          # Business logic services
+│   │   ├── channel_service.ts  # Channel management
+│   │   ├── role_service.ts     # Role management
+│   │   └── ticket_service.ts   # Ticket system
+│   ├── types/             # TypeScript type definitions
+│   │   ├── internal.ts
+│   │   └── supabase_types.ts
+│   ├── utils/             # Utility functions
+│   │   ├── client.ts      # Discord client setup
+│   │   ├── constants.ts   # Constants
+│   │   ├── event_router.ts # Event routing
+│   │   └── supabase.ts    # Supabase client
+│   └── index.ts           # Main entry point
+├── .env.example           # Environment variables template
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+## 🛠️ Development
+
+### Available Scripts
+
+- `npm run dev` - Run the bot in development mode with hot reload
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm start` - Run the compiled bot
+- `npm run lint` - Run ESLint (requires configuration)
+- `npm run lint:fix` - Run ESLint and auto-fix issues
+
+### Environment Modes
+
+**Development Mode** (`ENV=development`):
+- Commands are registered only to the server specified in `DEV_SERVER_ID`
+- Faster command updates (instant instead of up to 1 hour)
+- Uses TypeScript files directly with `tsx`
+
+**Production Mode** (`ENV=production`):
+- Commands are registered globally across all servers
+- Command updates can take up to 1 hour to propagate
+- Uses compiled JavaScript from the `dist/` folder
+
+## 🔒 Security Notes
+
+- Never commit your `.env` file to version control
+- Keep your `BOT_TOKEN` secret - anyone with this token can control your bot
+- Use environment-specific tokens for development and production
+- Regularly rotate your Supabase and API keys
+- Review bot permissions regularly to follow the principle of least privilege
+
+## 🤝 Contributing
+
+This bot is developed for the DaVinci Labs hackathon platform. Please coordinate with the team before making changes.
+
+## 📝 License
+
+ISC
+
+## 👤 Author
+
+Hadrien Casadesus
+
+## 🐛 Troubleshooting
+
+### Bot doesn't respond to commands
+- Ensure the bot is online (check Discord server member list)
+- Verify `BOT_TOKEN` is correct
+- Check that the bot has proper permissions
+- In development, verify `DEV_SERVER_ID` matches your test server
+
+### Roles or channels not created
+- Verify the bot has Administrator permission or sufficient permissions to create roles and channels
+- Check console logs for error messages
+- Ensure the bot's role is higher in the hierarchy than roles it's trying to create
+
+### Team roles not assigned
+- Verify Discord IDs in Supabase match actual user IDs
+- Ensure users are already in the server before running `/team_autorole`
+- Check Supabase connection is working
+
+### Announcements not appearing
+- Verify `GUILD_ID` matches your server
+- Check Supabase realtime is enabled
+- Ensure the "announcements" channel exists (run `/configure` first)
+- Verify `SUPABSE_TOKEN` and `SUPABASE_HOST` are correct
+
+## 📞 Support
+
+For issues and questions, use the ticket system in the Discord server or contact the development team.
