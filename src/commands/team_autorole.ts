@@ -34,16 +34,14 @@ const teamsAutoRoles: UserCommand = {
             if (error instanceof InternalHackatonBotError) {
                 errorMessage = error.message;
             }
-            await interaction.reply({
-                content: errorMessage,
-                flags: MessageFlags.Ephemeral
+            await interaction.editReply({
+                content: errorMessage
             });
             return;
         }
 
-        await interaction.reply({
-            content: "Team roles and Channels generated !",
-            flags: MessageFlags.Ephemeral
+        await interaction.editReply({
+            content: "Team roles and Channels generated !"
         });
     }
 };
