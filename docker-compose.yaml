@@ -19,9 +19,3 @@ services:
             DEV_SERVER_ID: ${DEV_SERVER_ID}
             CLIENT_ID: ${GUILD_ID}
             GUILD_ID: ${GUILD_ID}
-        networks:
-            - davinci-production
-
-networks:
-    davinci-production:
-        external: true
