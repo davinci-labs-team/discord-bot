@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
     discord-bot:
-        image: docker pull ghcr.io/davinci-labs-team/discord-bot:latest
+        image: ghcr.io/davinci-labs-team/discord-bot:latest
         container_name: discord_bot
         restart: unless-stopped
         logging:
