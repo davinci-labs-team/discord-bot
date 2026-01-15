@@ -13,11 +13,12 @@ services:
         environment:
             NODE_ENV: production
             ENV: production
-            SUPABASE_HOST: supabase
+            SUPABASE_HOST: ${SUPABASE_HOST}
             SUPABSE_TOKEN: ${SUPABASE_TOKEN}
             BOT_TOKEN: ${BOT_TOKEN}
-            DEV_SERVER_ID: "1190356451273740288"
-            CLIENT_ID: "client_id"
+            DEV_SERVER_ID: ${DEV_SERVER_ID}
+            CLIENT_ID: ${GUILD_ID}
+            GUILD_ID: ${GUILD_ID}
         networks:
             - davinci-production
 
