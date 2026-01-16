@@ -20,7 +20,7 @@ export default class HackatonBotConfig {
     private constructor() {
         this.config = {
             SUPABASE_HOST: process.env.SUPABASE_HOST as string,
-            SUPABSE_TOKEN: process.env.SUPABSE_TOKEN as string,
+            SUPABSE_TOKEN: process.env.SUPABASE_TOKEN as string,
             ENV: process.env.ENV as Env,
             BOT_TOKEN: process.env.BOT_TOKEN as string,
             DEV_SERVER_ID: process.env.DEV_SERVER_ID as string,
