@@ -76,16 +76,16 @@ export default abstract class RoleService {
             throw new Error("Could not fetch teams");
         }
         for (let i = 0; i < teamMembers.data.length; i++) {
-            const discordId = teamMembers.data[i]?.discord;
+            const discordId: { id: string; username: string } = teamMembers.data[i]?.discord;
             if (!discordId) continue;
             try {
-                const member = await guild.members.fetch(String(discordId)).catch(() => null);
+                const member = await guild.members.fetch(discordId.id).catch(() => null);
                 if (!member) continue;
                 await member.roles
                     .add(role)
-                    .catch((err) => console.error(`Failed to add role to ${discordId}:`, err));
+                    .catch((err) => console.error(`Failed to add role to ${discordId.id}:`, err));
             } catch (err) {
-                console.error(`Error assigning role to ${discordId}:`, err);
+                console.error(`Error assigning role to ${discordId.id}:`, err);
             }
         }
     }
